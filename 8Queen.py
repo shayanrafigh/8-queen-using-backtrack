@@ -1,78 +1,65 @@
-import copy
 import random
-class queen():  
-    depth:int
-    table : list
-    def __init__(self,depth=0,table=[]):
-        self.depth=depth
-        self.table=table
-    def check(self,n):
-        b=True
-        if self.depth==0:
-            if n in range(0,8):
-                return True   
-        else:   
-            for q in range(0,self.depth):        
-                if self.table[q]==n or abs(self.depth-q)==abs(n-self.table[q]): 
-                    return False   
-            return True
-        
-class board:
-    possible : list
-    def __init__(self,possible=[]):
-        self.possible=possible                 
-    def createTable(self,q):     
-        while(q.table[7]==-1):
-            for i in range(0,8):
-                if q.check(i):                    
-                    g=queen()
-                    g=copy.deepcopy(q)
-                    g.table[g.depth]=i
-                    g.depth=g.depth+1
-                    self.createTable(g)                   
-            if q.table[q.depth]==-1:
-                return                   
-        self.possible.append(q.table)
- 
-def sum(a,dic):
-    s=0
-    for i in range(len(a)):
-        s=dic[(i,a[i])]+s        
-    return s
-          
-h=[-1,-1,-1,-1,-1,-1,-1,-1]
-qu=queen(0,h)
-b=board()
-b.createTable(qu)
-q={}
-h=0
-mm=0
-for c in range(0,8):
-    for v in range(0,8):       
-        q[(c,v)]=random.randint(1, 99)
-print("numbers:")
-for item in q:
-    print(item,q[item])
-print("------------------")
-print("way to place queens and their weight:")
+
+N = 8
+
+def is_valid(board, row, col):
+    for r in range(row):
+        c = board[r]
+        # same column OR diagonal conflict
+        if c == col or abs(row - r) == abs(col - c):
+            return False
+    return True
 
 
-finallist=[]
-for f in b.possible:
-    finallist.append((f,sum(f,q)))
-y=[]
-for item in finallist: 
-    print(item) 
-    if mm<=item[1]:
-        mm=item[1]
-print("------------------")
-print("Final Solution:")
-for it in finallist:
-    if mm==it[1]:
-        print(it)
-input()
+def solve(row, board, solutions):
+    if row == N:
+        solutions.append(board.copy())
+        return
     
-                  
+    for col in range(N):
+        if is_valid(board, row, col):
+            board[row] = col
+            solve(row + 1, board, solutions)
+            board[row] = -1  # backtrack
 
-        
-        
+
+def calculate_weight(solution, weights):
+    return sum(weights[(row, col)] for row, col in enumerate(solution))
+
+
+# ---------- Generate all solutions ----------
+board = [-1] * N
+solutions = []
+solve(0, board, solutions)
+
+# ---------- Assign random weights ----------
+weights = {}
+for r in range(N):
+    for c in range(N):
+        weights[(r, c)] = random.randint(1, 99)
+
+print("Numbers (weights):")
+for k, v in weights.items():
+    print(k, v)
+
+print("\n------------------")
+print("Ways to place queens and their weight:")
+
+final_list = []
+max_weight = 0
+
+for sol in solutions:
+    w = calculate_weight(sol, weights)
+    final_list.append((sol, w))
+    print(sol, w)
+    if w > max_weight:
+        max_weight = w
+
+print("\n------------------")
+print("Final Solution(s):")
+
+for sol, w in final_list:
+    if w == max_weight:
+        print(sol, w)
+
+input()
